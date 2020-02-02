@@ -1,7 +1,3 @@
-module Image = Image;
-module Float32Array = Float32Array;
-module Uint16Array = Uint16Array;
-
 module Size = {
   type t = {
     width: int,
@@ -17,8 +13,6 @@ module ScreenSaver = {
 
 module Surface = {
   type t;
-  external createFromImagePath: string => result(t, string) =
-    "resdl_SDL_CreateRGBSurfaceFromImage";
 };
 
 module Clipboard = {
@@ -161,7 +155,6 @@ module Window = {
     "resdl_SDL_SetMacBackgroundColor";
 };
 
-module OldGl = Gl;
 module Gl = {
   type context;
 
@@ -172,7 +165,18 @@ module Gl = {
   external getDrawableSize: Window.t => Size.t =
     "resdl_SDL_GL_GetDrawableSize";
   external setSwapInterval: int => unit = "resdl_SDL_GL_SetSwapInterval";
-  include OldGl;
+
+  external clearColor: (float, float, float, float) => unit =
+    "resdl_glClearColor";
+
+  type stringName =
+    | Vendor
+    | Renderer
+    | Version
+    | ShadingLanguageVersion
+    | Extensions;
+
+  external getString: stringName => string = "resdl_SDL_GL_GetString";
 };
 
 external delay: int => unit = "resdl_SDL_Delay";

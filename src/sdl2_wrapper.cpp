@@ -14,8 +14,6 @@
 
 #include <glad/glad.h>
 
-#include "stb_image.h"
-
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_syswm.h>
 
@@ -133,6 +131,68 @@ SDL_HitTestResult resdl_hit_test(SDL_Window *win, const SDL_Point *area,
 
   return result;
 };
+
+typedef GLubyte* (*GlGetString)(GLenum);
+typedef void (*GlClearColor)(GLclampf, GLclampf, GLclampf, GLclampf);
+typedef void (*GlViewport)(GLint, GLint, GLsizei, GLsizei);
+typedef void (*GlClear)(GLbitfield mask);
+
+CAMLprim value resdl_SDL_GL_GetString(value vStr) {
+  CAMLparam0();
+  CAMLlocal1(ret);
+
+  int strEnum = Int_val(vStr);
+
+  GlGetString getString = (GlGetString)SDL_GL_GetProcAddress("glGetString");
+
+  if (!getString) {
+    ret = caml_copy_string("Unable to retrieve 'glGetString'");
+  } else {
+    switch (strEnum) {
+      case 0:
+        ret = caml_copy_string((char *)getString(GL_VENDOR));
+        break;
+      case 1:
+        ret = caml_copy_string((char *)getString(GL_RENDERER));
+        break;
+      case 2:
+        ret = caml_copy_string((char *)getString(GL_VERSION));
+        break;
+      case 3:
+        ret = caml_copy_string((char *)getString(GL_SHADING_LANGUAGE_VERSION));
+        break;
+      case 4:
+        ret = caml_copy_string((char *)getString(GL_EXTENSIONS));
+        break;
+      default:
+        // Should never happen
+        ret = caml_copy_string("Invalid enum for glGetString.");
+        break;
+    }
+  }
+
+  CAMLreturn(ret);
+}
+
+CAMLprim value resdl_glClearColor(value vR, value vG, value vB, value vA) {
+  CAMLparam0();
+
+  double r = Double_val(vR);
+  double g = Double_val(vG);
+  double b = Double_val(vB);
+  double a = Double_val(vA);
+
+  GlClearColor clearColor = (GlClearColor)SDL_GL_GetProcAddress("glClearColor");
+  GlClear clear = (GlClear)SDL_GL_GetProcAddress("glClear");
+
+  if (clearColor && clear) {
+    clearColor(r, g, b, a);
+    clear(GL_COLOR_BUFFER_BIT);
+  } else {
+  }
+
+  CAMLreturn(Val_unit);
+}
 
 CAMLprim value resdl_SDL_EnableHitTest(value vWin) {
   SDL_Window *win = (SDL_Window *)vWin;
@@ -475,8 +535,6 @@ CAMLprim value resdl_SDL_GL_SetSwapInterval(value vInterval) {
 CAMLprim value resdl_SDL_GL_Setup(value w) {
   SDL_Window *win = (SDL_Window *)w;
   SDL_GLContext ctx = SDL_GL_CreateContext(win);
-
-  gladLoadGLES2Loader((GLADloadproc)SDL_GL_GetProcAddress);
   return (value)ctx;
 }
 
@@ -933,59 +991,6 @@ CAMLprim value resdl_SDL_SetCursor(value vCursor) {
   CAMLreturn(Val_unit);
 }
 
-CAMLprim value resdl_SDL_CreateRGBSurfaceFromImage(value vPath) {
-  CAMLparam1(vPath);
-  CAMLlocal1(ret);
-  // FROM:
-  // https://wiki.libsdl.org/SDL_CreateRGBSurfaceFrom
-
-  int req_format = STBI_rgb_alpha;
-  int width, height, orig_format;
-  unsigned char *data =
-      stbi_load(String_val(vPath), &width, &height, &orig_format, req_format);
-  if (data == NULL) {
-
-    ret = Val_error(caml_copy_string(stbi_failure_reason()));
-  } else {
-
-    // Set up the pixel format color masks for RGB(A) byte arrays.
-    // Only STBI_rgb (3) and STBI_rgb_alpha (4) are supported here!
-    Uint32 rmask, gmask, bmask, amask;
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-    int shift = (req_format == STBI_rgb) ? 8 : 0;
-    rmask = 0xff000000 >> shift;
-    gmask = 0x00ff0000 >> shift;
-    bmask = 0x0000ff00 >> shift;
-    amask = 0x000000ff >> shift;
-#else // little endian, like x86
-    rmask = 0x000000ff;
-    gmask = 0x0000ff00;
-    bmask = 0x00ff0000;
-    amask = (req_format == STBI_rgb) ? 0 : 0xff000000;
-#endif
-
-    int depth, pitch;
-    if (req_format == STBI_rgb) {
-      depth = 24;
-      pitch = 3 * width; // 3 bytes per pixel * pixels per row
-    } else {             // STBI_rgb_alpha (RGBA)
-      depth = 32;
-      pitch = 4 * width;
-    }
-
-    SDL_Surface *surf = SDL_CreateRGBSurfaceFrom(
-        (void *)data, width, height, depth, pitch, rmask, gmask, bmask, amask);
-    if (surf == NULL) {
-      ret = Val_error(caml_copy_string(SDL_GetError()));
-      stbi_image_free(data);
-    } else {
-      ret = Val_ok((value)surf);
-    }
-  }
-
-  CAMLreturn(ret);
-};
-
 CAMLprim value resdl_SDL_GL_SwapWindow(value w) {
   SDL_Window *win = (SDL_Window *)w;
   caml_release_runtime_system();
@@ -1059,13 +1064,6 @@ CAMLprim value resdl_SDL_CreateWindow(value vWidth, value vHeight,
 
   // According to the docs - `SDL_GL_SetAttribute` needs
   // to be called prior to creating the window.
-
-  /* Turn on double buffering with a 24bit Z buffer.
-   * You may need to change this to 16 or 32 for your system */
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-  // SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
   SDL_Window *win = (SDL_CreateWindow(
       String_val(vName), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width,
@@ -1159,6 +1157,24 @@ CAMLprim value resdl_SDL_GetWindowId(value vWindow) {
 
 CAMLprim value resdl_SDL_Init() {
   CAMLparam0();
+
+  /* Turn on double buffering with a 24bit Z buffer.
+   * You may need to change this to 16 or 32 for your system */
+  static const int kStencilBits = 8;  // Skia needs 8 stencil bits
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+
+  SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
+  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, kStencilBits);
+
+  SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+  int result = SDL_GL_LoadLibrary(nullptr);
   int ret = SDL_Init(SDL_INIT_VIDEO);
 
   CAMLreturn(Val_int(ret));

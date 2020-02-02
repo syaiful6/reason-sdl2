@@ -9,7 +9,8 @@
           "dune",
           "build",
           "--root",
-          "."
+          ".",
+          "-j4"
         ]
       ],
       "install": [
