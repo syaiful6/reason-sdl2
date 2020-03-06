@@ -1,5 +1,5 @@
 {
-  "checksum": "0ea513fb4434133e7c2abdefee6e3f77",
+  "checksum": "90f9707367540956b6ea8e74ca936cb8",
   "root": "reason-sdl2@link-dev:./package.json",
   "node": {
     "wordwrap@0.0.3@d41d8cd9": {
@@ -104,8 +104,8 @@
       "overrides": [ "js.json" ],
       "dependencies": [
         "refmterr@3.3.0@d41d8cd9", "http-server@0.12.1@d41d8cd9",
-        "esy-sdl2@github:revery-ui/esy-sdl2#c335403@d41d8cd9",
-        "esy-cmake@0.3.5@d41d8cd9", "@opam/merlin-extend@opam:0.4@64c45329",
+        "esy-sdl2@2.0.10006@d41d8cd9", "esy-cmake@0.3.5@d41d8cd9",
+        "@opam/merlin-extend@opam:0.4@64c45329",
         "@opam/js_of_ocaml-lwt@opam:3.5.2@6ea3e3c2",
         "@opam/js_of_ocaml-compiler@opam:3.5.2@092d6ef6",
         "@opam/js_of_ocaml@opam:3.5.2@c5bae178",
@@ -366,13 +366,15 @@
       "dependencies": [],
       "devDependencies": []
     },
-    "esy-sdl2@github:revery-ui/esy-sdl2#c335403@d41d8cd9": {
-      "id": "esy-sdl2@github:revery-ui/esy-sdl2#c335403@d41d8cd9",
+    "esy-sdl2@2.0.10006@d41d8cd9": {
+      "id": "esy-sdl2@2.0.10006@d41d8cd9",
       "name": "esy-sdl2",
-      "version": "github:revery-ui/esy-sdl2#c335403",
+      "version": "2.0.10006",
       "source": {
         "type": "install",
-        "source": [ "github:revery-ui/esy-sdl2#c335403" ]
+        "source": [
+          "archive:https://registry.npmjs.org/esy-sdl2/-/esy-sdl2-2.0.10006.tgz#sha1:f16e204a0c3a5fbeca1bb0d1cccbaaa4519cddd3"
+        ]
       },
       "overrides": [],
       "dependencies": [],
