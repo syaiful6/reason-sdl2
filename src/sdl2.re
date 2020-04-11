@@ -175,7 +175,10 @@ module Window = {
     };
   };
 
+  let _resize = (_arg) => prerr_endline ("Resizing!");
+
   Callback.register("__sdl2_caml_hittest__", _hitTest);
+  Callback.register("__sdl2_caml_resize__", _resize);
 
   external hide: t => unit = "resdl_SDL_HideWindow";
   external raise: t => unit = "resdl_SDL_RaiseWindow";

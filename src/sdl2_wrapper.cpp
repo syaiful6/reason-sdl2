@@ -1255,11 +1255,18 @@ CAMLprim value resdl_SDL_ShowWindow(value vWin) {
 int resizeListener(void *data, SDL_Event *event) {
   if (event->type == SDL_WINDOWEVENT &&
       event->window.event == SDL_WINDOWEVENT_RESIZED) {
-    value *f = (value *)data;
+    //value *f = (value *)data;
     value args[] = {Val_unit};
     caml_c_thread_register();
+      
     caml_acquire_runtime_system();
-    caml_callbackN(*f, 1, args);
+  
+    static const value *resizeCallback = NULL;
+    if (resizeCallback == NULL) {
+      resizeCallback = caml_named_value("__sdl2_caml_resize__");
+    }
+
+    caml_callbackN(*resizeCallback, 1, args);
     caml_release_runtime_system();
   }
   return 0;
