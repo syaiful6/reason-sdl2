@@ -1127,6 +1127,27 @@ CAMLprim value resdl_SDL_WindowCenter(value vWin) {
   CAMLreturn(Val_unit);
 }
 
+int resizeListener(void *data, SDL_Event *event) {
+  if (event->type == SDL_WINDOWEVENT &&
+      event->window.event == SDL_WINDOWEVENT_RESIZED) {
+    //value *f = (value *)data;
+    value args[] = {Val_unit};
+    caml_c_thread_register();
+
+    caml_acquire_runtime_system();
+
+    static const value *resizeCallback = NULL;
+    if (resizeCallback == NULL) {
+      resizeCallback = caml_named_value("__sdl2_caml_resize__");
+    }
+
+    if (resizeCallback) {
+      caml_callbackN(*resizeCallback, 1, args);
+    }
+    caml_release_runtime_system();
+  }
+  return 0;
+}
 
 CAMLprim value resdl_SDL_CreateWindow(value vWidth, value vHeight,
                                       value vName) {
@@ -1173,6 +1194,8 @@ CAMLprim value resdl_SDL_CreateWindow(value vWidth, value vHeight,
     SDL_LogCritical(SDL_LOG_CATEGORY_ERROR, "SDL_CreateWindow failed: %s\n",
                     SDL_GetError());
   }
+
+  SDL_AddEventWatch(resizeListener, NULL);
 
   value vWindow = (value)win;
   CAMLreturn(vWindow);
@@ -1248,34 +1271,6 @@ CAMLprim value resdl_SDL_ShowWindow(value vWin) {
 
   SDL_Window *win = (SDL_Window *)vWin;
   SDL_ShowWindow(win);
-
-  CAMLreturn(Val_unit);
-}
-
-int resizeListener(void *data, SDL_Event *event) {
-  if (event->type == SDL_WINDOWEVENT &&
-      event->window.event == SDL_WINDOWEVENT_RESIZED) {
-    //value *f = (value *)data;
-    value args[] = {Val_unit};
-    caml_c_thread_register();
-      
-    caml_acquire_runtime_system();
-  
-    static const value *resizeCallback = NULL;
-    if (resizeCallback == NULL) {
-      resizeCallback = caml_named_value("__sdl2_caml_resize__");
-    }
-
-    caml_callbackN(*resizeCallback, 1, args);
-    caml_release_runtime_system();
-  }
-  return 0;
-}
-
-CAMLprim value resdl_SDL_SetWindowResizeCallback(value vCallback) {
-  CAMLparam1(vCallback);
-
-  SDL_AddEventWatch(resizeListener, &vCallback);
 
   CAMLreturn(Val_unit);
 }

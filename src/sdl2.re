@@ -150,8 +150,6 @@ module Window = {
   external setTitle: (t, string) => unit = "resdl_SDL_SetWindowTitle";
   external setMinimumSize: (t, int, int) => unit =
     "resdl_SDL_SetWindowMinimumSize";
-  external setResizeCallback: (unit => bool) => unit =
-    "resdl_SDL_SetWindowResizeCallback";
 
   external _enableHitTest: t => unit = "resdl_SDL_EnableHitTest";
   external _disableHitTest: t => unit = "resdl_SDL_EnableHitTest";
@@ -175,10 +173,7 @@ module Window = {
     };
   };
 
-  let _resize = (_arg) => prerr_endline ("Resizing!");
-
   Callback.register("__sdl2_caml_hittest__", _hitTest);
-  Callback.register("__sdl2_caml_resize__", _resize);
 
   external hide: t => unit = "resdl_SDL_HideWindow";
   external raise: t => unit = "resdl_SDL_RaiseWindow";
@@ -670,7 +665,7 @@ let _nativeLoop = renderFn => {
 };
 
 let renderLoop = (renderFunction: renderFunction) => {
-  Window.setResizeCallback(renderFunction);
+  Callback.register("__sdl2_caml_resize__", renderFunction);
   switch (Sys.backend_type) {
   | Native => _nativeLoop(renderFunction)
   | Bytecode => _nativeLoop(renderFunction)
