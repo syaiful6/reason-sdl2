@@ -10,7 +10,7 @@
   },
   "esy": {
     "build": "dune build -p sdl2",
-    "buildiDev": "refmterr dune build --root . --only-package sdl2"
+    "buildDev": "refmterr dune build --root . --only-package sdl2"
   },
   "dependencies": {
     "@esy-ocaml/reason": "^3.3.7",
