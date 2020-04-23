@@ -185,11 +185,11 @@ let run = () => {
     switch (Sdl2.Event.poll()) {
     | None => ()
     | Some(evt) =>
-      //Console.log(Sdl2.Event.show(evt));
+      Console.log(Sdl2.Event.show(evt));
       switch (evt) {
       | Sdl2.Event.Quit => exit(0)
       | _ => ()
-      }
+      };
     };
 
     render(primaryWindow);

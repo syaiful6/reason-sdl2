@@ -290,10 +290,10 @@ module Keycode = {
   let escape = 27;
 
   let space = 32;
-  
+
   let left_paren = 40;
   let right_paren = 41;
-  
+
   let asterisk = 42;
   let plus = 43;
   let minus = 45;
@@ -313,15 +313,15 @@ module Keycode = {
   let digit7 = 55;
   let digit8 = 56;
   let digit9 = 57;
-  
+
   let pad_divide = 1073741908;
-  let pad_multiply = 1073741909;  
+  let pad_multiply = 1073741909;
   let pad_minus = 1073741910;
   let pad_plus = 1073741911;
   let pad_period = 1073741923;
-  
+
   let pad_equals = 1073741927;
-  
+
   let p_digit1 = 1073741913;
   let p_digit2 = 1073741914;
   let p_digit3 = 1073741915;
@@ -355,6 +355,8 @@ module WheelType = {
 
 module Keymod = {
   type t = int;
+
+  let none = 0;
 
   [@noalloc] external isLeftShiftDown: t => bool = "resdl_SDL_ModLeftShift";
   [@noalloc] external isRightShiftDown: t => bool = "resdl_SDL_ModRightShift";
@@ -403,6 +405,7 @@ module Keymod = {
   };
 
   [@noalloc] external getState: unit => t = "resdl_SDL_GetModState";
+  [@noalloc] external setState: t => unit = "resdl_SDL_SetModState";
 };
 
 module Event = {
@@ -501,7 +504,8 @@ module Event = {
     | WindowHitTest(windowEvent)
     | MousePan(mousePan)
     // An event that hasn't been implemented yet
-    | Unknown;
+    | Unknown
+    | KeymapChanged;
 
   let show = (v: t) => {
     switch (v) {
@@ -620,6 +624,7 @@ module Event = {
       Printf.sprintf("WindowTakeFocus: %d\n", windowID)
     | WindowHitTest({windowID}) =>
       Printf.sprintf("WindowHitTest: %d\n", windowID)
+    | KeymapChanged => "KeymapChanged"
     | Unknown => "Unknown"
     };
   };
