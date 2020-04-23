@@ -731,6 +731,9 @@ CAMLprim value Val_SDL_Event(SDL_Event *event) {
 
     Store_field(v, 0, vInner);
     break;
+  case SDL_KEYMAPCHANGED:
+    v = Val_int(2);
+    break;
   case SDL_WINDOWEVENT:
     switch (event->window.event) {
     case SDL_WINDOWEVENT_SHOWN:
@@ -1442,6 +1445,11 @@ CAMLprim value resdl_SDL_ModAltGrDown(value vMod) {
 
 CAMLprim value resdl_SDL_GetModState(value vUnit) {
   return Val_int(SDL_GetModState());
+};
+
+CAMLprim value resdl_SDL_SetModState(value vMod) {
+  SDL_SetModState((SDL_Keymod)Int_val(vMod));
+  return Val_unit;
 };
 
 CAMLprim value resdl_SDL_GetCompiledVersion(value vUnit) {
