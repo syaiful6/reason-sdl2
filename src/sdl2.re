@@ -8,6 +8,15 @@ module Size = {
   };
 };
 
+module Rect = {
+  type t = {
+    x: int,
+    y: int,
+    width: int,
+    height: int,
+  };
+};
+
 module ScreenSaver = {
   external enable: unit => unit = "resdl_SDL_EnableScreenSaver";
   external disable: unit => unit = "resdl_SDL_DisableScreenSaver";
@@ -58,11 +67,15 @@ module Display = {
     };
   };
 
+  external getNumberOfDisplays: unit => int = "resdl_SDL_GetNumVideoDisplays";
+  let getDisplays = () =>
+    List.init(getNumberOfDisplays(), (i) => (Obj.magic(i: int): t));
+
   external getDPI: t => Dpi.t = "resdl_SDL_GetDisplayDPI";
-
   external getCurrentMode: t => Mode.t = "resdl_SDL_GetCurrentDisplayMode";
-
   external getDesktopMode: t => Mode.t = "resdl_SDL_GetDesktopDisplayMode";
+  external getBounds: t => Rect.t = "resdl_SDL_GetDisplayBounds";
+  external getUsableBounds: t => Rect.t = "resdl_SDL_GetDisplayUsableBounds";
 };
 
 module PixelFormat = {

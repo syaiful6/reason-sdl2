@@ -459,6 +459,46 @@ CAMLprim value resdl_SDL_GetDesktopDisplayMode(value vDisplay) {
   CAMLreturn(ret);
 };
 
+CAMLprim value resdl_SDL_GetDisplayBounds(value vDisplay) {
+  CAMLparam1(vDisplay);
+  CAMLlocal1(rect);
+
+  int displayIndex = Int_val(vDisplay);
+  SDL_Rect sdlRect;
+
+  SDL_GetDisplayBounds(displayIndex, &sdlRect);
+
+  rect = caml_alloc(4, 0);
+  Store_field(rect, 0, Val_int(sdlRect.x));
+  Store_field(rect, 1, Val_int(sdlRect.y));
+  Store_field(rect, 2, Val_int(sdlRect.w));
+  Store_field(rect, 3, Val_int(sdlRect.h));
+  CAMLreturn(rect);
+};
+
+CAMLprim value resdl_SDL_GetDisplayUsableBounds(value vDisplay) {
+  CAMLparam1(vDisplay);
+  CAMLlocal1(rect);
+
+  int displayIndex = Int_val(vDisplay);
+  SDL_Rect sdlRect;
+
+  SDL_GetDisplayUsableBounds(displayIndex, &sdlRect);
+
+  rect = caml_alloc(4, 0);
+  Store_field(rect, 0, Val_int(sdlRect.x));
+  Store_field(rect, 1, Val_int(sdlRect.y));
+  Store_field(rect, 2, Val_int(sdlRect.w));
+  Store_field(rect, 3, Val_int(sdlRect.h));
+  CAMLreturn(rect);
+};
+
+CAMLprim value resdl_SDL_GetNumVideoDisplays(value vUnit) {
+  CAMLparam0();
+  int num = SDL_GetNumVideoDisplays();
+  CAMLreturn(Val_int(num));
+};
+
 CAMLprim value resdl_SDL_GetPixelFormatName(value vPixelFormat) {
   CAMLparam1(vPixelFormat);
   CAMLlocal1(ret);
