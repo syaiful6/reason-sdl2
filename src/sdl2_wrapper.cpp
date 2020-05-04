@@ -459,6 +459,46 @@ CAMLprim value resdl_SDL_GetDesktopDisplayMode(value vDisplay) {
   CAMLreturn(ret);
 };
 
+CAMLprim value resdl_SDL_GetDisplayBounds(value vDisplay) {
+  CAMLparam1(vDisplay);
+  CAMLlocal1(rect);
+
+  int displayIndex = Int_val(vDisplay);
+  SDL_Rect sdlRect;
+
+  SDL_GetDisplayBounds(displayIndex, &sdlRect);
+
+  rect = caml_alloc(4, 0);
+  Store_field(rect, 0, Val_int(sdlRect.x));
+  Store_field(rect, 1, Val_int(sdlRect.y));
+  Store_field(rect, 2, Val_int(sdlRect.w));
+  Store_field(rect, 3, Val_int(sdlRect.h));
+  CAMLreturn(rect);
+};
+
+CAMLprim value resdl_SDL_GetDisplayUsableBounds(value vDisplay) {
+  CAMLparam1(vDisplay);
+  CAMLlocal1(rect);
+
+  int displayIndex = Int_val(vDisplay);
+  SDL_Rect sdlRect;
+
+  SDL_GetDisplayUsableBounds(displayIndex, &sdlRect);
+
+  rect = caml_alloc(4, 0);
+  Store_field(rect, 0, Val_int(sdlRect.x));
+  Store_field(rect, 1, Val_int(sdlRect.y));
+  Store_field(rect, 2, Val_int(sdlRect.w));
+  Store_field(rect, 3, Val_int(sdlRect.h));
+  CAMLreturn(rect);
+};
+
+CAMLprim value resdl_SDL_GetNumVideoDisplays(value vUnit) {
+  CAMLparam0();
+  int num = SDL_GetNumVideoDisplays();
+  CAMLreturn(Val_int(num));
+};
+
 CAMLprim value resdl_SDL_GetPixelFormatName(value vPixelFormat) {
   CAMLparam1(vPixelFormat);
   CAMLlocal1(ret);
@@ -731,6 +771,9 @@ CAMLprim value Val_SDL_Event(SDL_Event *event) {
 
     Store_field(v, 0, vInner);
     break;
+  case SDL_KEYMAPCHANGED:
+    v = Val_int(2);
+    break;
   case SDL_WINDOWEVENT:
     switch (event->window.event) {
     case SDL_WINDOWEVENT_SHOWN:
@@ -882,6 +925,22 @@ CAMLprim value resdl_SDL_GetWindowSize(value vWindow) {
   Store_field(ret, 0, Val_int(width));
   Store_field(ret, 1, Val_int(height));
   CAMLreturn(ret);
+}
+
+CAMLprim value resdl_SDL_GetWindowPosition(value vWindow) {
+  CAMLparam1(vWindow);
+  CAMLlocal1(position);
+
+  SDL_Window *win = (SDL_Window *)vWindow;
+  int x, y = 0;
+
+  SDL_GetWindowPosition(win, &x, &y);
+
+  position = caml_alloc(2, 0);
+  Store_field(position, 0, Val_int(x));
+  Store_field(position, 1, Val_int(y));
+
+  CAMLreturn(position);
 }
 
 CAMLprim value resdl_SDL_GL_GetDrawableSize(value vWindow) {
@@ -1149,9 +1208,27 @@ int resizeListener(void *data, SDL_Event *event) {
   return 0;
 }
 
-CAMLprim value resdl_SDL_CreateWindow(value vWidth, value vHeight,
-                                      value vName) {
-  CAMLparam3(vWidth, vHeight, vName);
+CAMLprim value resdl_SDL_CreateWindow(value vName, value vX, value vY,
+                                      value vWidth, value vHeight) {
+  CAMLparam5(vName, vX, vY, vWidth, vHeight);
+
+  int x;
+  if (vX == hash_variant("Centered")) {
+    x = SDL_WINDOWPOS_CENTERED;
+  } else if (Is_block(vX) && Field(vX, 0) == hash_variant("Absolute")) {
+    x = Int_val(Field(vX, 1));
+  } else {
+    x = SDL_WINDOWPOS_UNDEFINED;
+  };
+
+  int y;
+  if (vY == hash_variant("Centered")) {
+    y = SDL_WINDOWPOS_CENTERED;
+  } else if (Is_block(vY) && Field(vY, 0) == hash_variant("Absolute")) {
+    y = Int_val(Field(vY, 1));
+  } else {
+    y = SDL_WINDOWPOS_UNDEFINED;
+  };
 
   int width = Int_val(vWidth);
   int height = Int_val(vHeight);
@@ -1186,8 +1263,7 @@ CAMLprim value resdl_SDL_CreateWindow(value vWidth, value vHeight,
   SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
   SDL_Window *win = (SDL_CreateWindow(
-      String_val(vName), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width,
-      height,
+      String_val(vName), x, y, width, height,
       SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE));
 
   if (!win) {
@@ -1237,6 +1313,16 @@ CAMLprim value resdl_SDL_MaximizeWindow(value vWin) {
   SDL_MaximizeWindow(win);
 
   CAMLreturn(Val_unit);
+}
+
+CAMLprim value resdl_SDL_IsWindowMaximized(value vWin) {
+  CAMLparam1(vWin);
+
+  SDL_Window *win = (SDL_Window *)vWin;
+  Uint32 flags = SDL_GetWindowFlags(win);
+  bool hasMaximizedFlag = (flags & SDL_WINDOW_MAXIMIZED) != 0;
+
+  CAMLreturn(Val_bool(hasMaximizedFlag));
 }
 
 CAMLprim value resdl_SDL_MinimizeWindow(value vWin) {
@@ -1466,6 +1552,11 @@ CAMLprim value resdl_SDL_ModAltGrDown(value vMod) {
 
 CAMLprim value resdl_SDL_GetModState(value vUnit) {
   return Val_int(SDL_GetModState());
+};
+
+CAMLprim value resdl_SDL_SetModState(value vMod) {
+  SDL_SetModState((SDL_Keymod)Int_val(vMod));
+  return Val_unit;
 };
 
 CAMLprim value resdl_SDL_GetCompiledVersion(value vUnit) {

@@ -26,7 +26,8 @@ let run = () => {
 
   Console.log("Operating system: " ++ Sdl2.Platform.getName());
   Console.log("Operating system version: " ++ Sdl2.Platform.getVersion());
-  let primaryWindow = Sdl2.Window.create(100, 100, "test");
+  let primaryWindow =
+    Sdl2.Window.create("test", `Centered, `Centered, 100, 100);
   let context = Sdl2.Gl.setup(primaryWindow);
   let version = Sdl2.Gl.getString(Sdl2.Gl.Version);
   let vendor = Sdl2.Gl.getString(Sdl2.Gl.Vendor);
@@ -79,6 +80,15 @@ let run = () => {
 
   let scale = Sdl2.Window.getWin32ScaleFactor(primaryWindow);
   Console.log("Win32 scale factor: " ++ string_of_float(scale));
+
+  Console.log("Displays:");
+  List.iter(
+    display => {
+      let Sdl2.Rect.{x, y, width, height} = Sdl2.Display.getBounds(display);
+      Printf.printf("\tx: %n, y: %n, w: %n, h: %n\n%!", x, y, width, height);
+    },
+    Sdl2.Display.getDisplays(),
+  );
 
   let display = Sdl2.Window.getDisplay(primaryWindow);
   let dpi = Sdl2.Display.getDPI(display);
@@ -185,11 +195,11 @@ let run = () => {
     switch (Sdl2.Event.poll()) {
     | None => ()
     | Some(evt) =>
-      //Console.log(Sdl2.Event.show(evt));
+      Console.log(Sdl2.Event.show(evt));
       switch (evt) {
       | Sdl2.Event.Quit => exit(0)
       | _ => ()
-      }
+      };
     };
 
     render(primaryWindow);

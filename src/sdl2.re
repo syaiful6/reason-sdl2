@@ -8,6 +8,15 @@ module Size = {
   };
 };
 
+module Rect = {
+  type t = {
+    x: int,
+    y: int,
+    width: int,
+    height: int,
+  };
+};
+
 module ScreenSaver = {
   external enable: unit => unit = "resdl_SDL_EnableScreenSaver";
   external disable: unit => unit = "resdl_SDL_DisableScreenSaver";
@@ -58,11 +67,15 @@ module Display = {
     };
   };
 
+  external getNumberOfDisplays: unit => int = "resdl_SDL_GetNumVideoDisplays";
+  let getDisplays = () =>
+    List.init(getNumberOfDisplays(), (i) => (Obj.magic(i: int): t));
+
   external getDPI: t => Dpi.t = "resdl_SDL_GetDisplayDPI";
-
   external getCurrentMode: t => Mode.t = "resdl_SDL_GetCurrentDisplayMode";
-
   external getDesktopMode: t => Mode.t = "resdl_SDL_GetDesktopDisplayMode";
+  external getBounds: t => Rect.t = "resdl_SDL_GetDisplayBounds";
+  external getUsableBounds: t => Rect.t = "resdl_SDL_GetDisplayUsableBounds";
 };
 
 module PixelFormat = {
@@ -134,9 +147,19 @@ module Window = {
 
   type hitTestCallback = (t, int, int) => hitTestResult;
 
-  external create: (int, int, string) => t = "resdl_SDL_CreateWindow";
+  external create:
+    (
+      string,
+      [ | `Undefined | `Centered | `Absolute(int)],
+      [ | `Undefined | `Centered | `Absolute(int)],
+      int,
+      int
+    ) =>
+    t =
+    "resdl_SDL_CreateWindow";
   external getId: t => int = "resdl_SDL_GetWindowId";
   external getSize: t => Size.t = "resdl_SDL_GetWindowSize";
+  external getPosition: t => (int, int) = "resdl_SDL_GetWindowPosition";
   external setBordered: (t, bool) => unit = "resdl_SDL_SetWindowBordered";
   external getPixelFormat: t => PixelFormat.t =
     "resdl_SDL_GetWindowPixelFormat";
@@ -182,6 +205,8 @@ module Window = {
   external minimize: t => unit = "resdl_SDL_MinimizeWindow";
   external restore: t => unit = "resdl_SDL_RestoreWindow";
   external maximize: t => unit = "resdl_SDL_MaximizeWindow";
+  
+  external isMaximized: t => bool = "resdl_SDL_IsWindowMaximized";
 
   external getDisplay: t => Display.t = "resdl_SDL_GetWindowDisplayIndex";
 
@@ -285,12 +310,21 @@ module Keycode = {
   // https://wiki.libsdl.org/SDLKeycodeLookup
   let unknown = 0;
   let backspace = 8;
+  let return = 13;
 
   let escape = 27;
 
+  let space = 32;
+
+  let left_paren = 40;
+  let right_paren = 41;
+
+  let asterisk = 42;
+  let plus = 43;
   let minus = 45;
   let period = 46;
   let slash = 47;
+  let caret = 94;
 
   let equals = 61;
 
@@ -304,6 +338,25 @@ module Keycode = {
   let digit7 = 55;
   let digit8 = 56;
   let digit9 = 57;
+
+  let pad_divide = 1073741908;
+  let pad_multiply = 1073741909;
+  let pad_minus = 1073741910;
+  let pad_plus = 1073741911;
+  let pad_period = 1073741923;
+
+  let pad_equals = 1073741927;
+
+  let p_digit1 = 1073741913;
+  let p_digit2 = 1073741914;
+  let p_digit3 = 1073741915;
+  let p_digit4 = 1073741916;
+  let p_digit5 = 1073741917;
+  let p_digit6 = 1073741918;
+  let p_digit7 = 1073741919;
+  let p_digit8 = 1073741920;
+  let p_digit9 = 1073741921;
+  let p_digit0 = 1073741922;
 
   let c = 99;
 
@@ -327,6 +380,8 @@ module WheelType = {
 
 module Keymod = {
   type t = int;
+
+  let none = 0;
 
   [@noalloc] external isLeftShiftDown: t => bool = "resdl_SDL_ModLeftShift";
   [@noalloc] external isRightShiftDown: t => bool = "resdl_SDL_ModRightShift";
@@ -375,6 +430,7 @@ module Keymod = {
   };
 
   [@noalloc] external getState: unit => t = "resdl_SDL_GetModState";
+  [@noalloc] external setState: t => unit = "resdl_SDL_SetModState";
 };
 
 module Event = {
@@ -473,7 +529,8 @@ module Event = {
     | WindowHitTest(windowEvent)
     | MousePan(mousePan)
     // An event that hasn't been implemented yet
-    | Unknown;
+    | Unknown
+    | KeymapChanged;
 
   let show = (v: t) => {
     switch (v) {
@@ -592,6 +649,7 @@ module Event = {
       Printf.sprintf("WindowTakeFocus: %d\n", windowID)
     | WindowHitTest({windowID}) =>
       Printf.sprintf("WindowHitTest: %d\n", windowID)
+    | KeymapChanged => "KeymapChanged"
     | Unknown => "Unknown"
     };
   };
