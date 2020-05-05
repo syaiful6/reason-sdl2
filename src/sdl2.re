@@ -1,6 +1,19 @@
 module Float32Array = Float32Array;
 module Uint16Array = Uint16Array;
 
+// Added this small unwrap function as a sort
+// of shim for 4.08's Option.value. This can be
+// removed if and when the package relies on >=4.08
+let unwrap = (~default: 'a=?, opt) =>
+  switch (opt) {
+  | Some(v) => v
+  | None =>
+    switch (default) {
+    | Some(v2) => v2
+    | None => raise(Not_found)
+    }
+  };
+
 module Size = {
   type t = {
     width: int,
@@ -205,7 +218,7 @@ module Window = {
   external minimize: t => unit = "resdl_SDL_MinimizeWindow";
   external restore: t => unit = "resdl_SDL_RestoreWindow";
   external maximize: t => unit = "resdl_SDL_MaximizeWindow";
-  
+
   external isMaximized: t => bool = "resdl_SDL_IsWindowMaximized";
 
   external getDisplay: t => Display.t = "resdl_SDL_GetWindowDisplayIndex";
@@ -501,6 +514,14 @@ module Event = {
     height: int,
   };
 
+  type dropEvent = {
+    windowID: int,
+    file: option(string),
+    timestamp: int,
+    x: int,
+    y: int,
+  };
+
   type t =
     | Quit
     | MouseMotion(mouseMotion) // 0
@@ -516,18 +537,22 @@ module Event = {
     | WindowExposed(windowEvent) // 10
     | WindowMoved(windowMoveEvent) // 11
     | WindowResized(windowSizeEvent) // 12
-    | WindowSizeChanged(windowSizeEvent) //12
-    | WindowMinimized(windowEvent)
-    | WindowMaximized(windowEvent)
-    | WindowRestored(windowEvent)
-    | WindowEnter(windowEvent)
-    | WindowLeave(windowEvent)
-    | WindowFocusGained(windowEvent)
-    | WindowFocusLost(windowEvent)
-    | WindowClosed(windowEvent)
-    | WindowTakeFocus(windowEvent)
-    | WindowHitTest(windowEvent)
-    | MousePan(mousePan)
+    | WindowSizeChanged(windowSizeEvent) // 13
+    | WindowMinimized(windowEvent) // 14
+    | WindowMaximized(windowEvent) // 15
+    | WindowRestored(windowEvent) // 16
+    | WindowEnter(windowEvent) // 17
+    | WindowLeave(windowEvent) // 18
+    | WindowFocusGained(windowEvent) // 19
+    | WindowFocusLost(windowEvent) // 20
+    | WindowClosed(windowEvent) // 21
+    | WindowTakeFocus(windowEvent) // 22
+    | WindowHitTest(windowEvent) // 23
+    | MousePan(mousePan) // 24
+    | DropText(dropEvent) // 25
+    | DropFile(dropEvent) // 26
+    | DropBegin(dropEvent) // 27
+    | DropComplete(dropEvent) // 28
     // An event that hasn't been implemented yet
     | Unknown
     | KeymapChanged;
@@ -649,6 +674,31 @@ module Event = {
       Printf.sprintf("WindowTakeFocus: %d\n", windowID)
     | WindowHitTest({windowID}) =>
       Printf.sprintf("WindowHitTest: %d\n", windowID)
+    | DropText({windowID, file, x, y, _}) =>
+      Printf.sprintf(
+        "DropText - windowID: %d file: %s x: %d y: %d\n",
+        windowID,
+        unwrap(~default="", file),
+        x,
+        y,
+      )
+    | DropFile({windowID, file, x, y, _}) =>
+      Printf.sprintf(
+        "DropFile - windowID: %d file: %s x: %d y: %d\n",
+        windowID,
+        unwrap(~default="", file),
+        x,
+        y,
+      )
+    | DropBegin({windowID, x, y, _}) =>
+      Printf.sprintf("DropBegin - windowID: %d x: %d y: %d\n", windowID, x, y)
+    | DropComplete({windowID, x, y, _}) =>
+      Printf.sprintf(
+        "DropComplete - windowID: %d x: %d y: %d\n",
+        windowID,
+        x,
+        y,
+      )
     | KeymapChanged => "KeymapChanged"
     | Unknown => "Unknown"
     };
