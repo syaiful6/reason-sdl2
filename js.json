@@ -1,19 +1,21 @@
 {
   "source": "./package.json",
   "scripts": {
-      "run": "esy '@js' x bash -c 'http-server #{self.bin}'"
+      "run": "esy '@js' x bash -c 'http-server #{self.target_dir / 'install' / 'default' / 'bin'  }'"
   },
   "override": {
       "build": [
         [
           "dune",
           "build",
+          "--promote-install-files",
           "--root",
           "."
         ],
         [
           "dune",
           "build",
+          "--promote-install-files",
           "--root",
           ".",
           "./bin_js/test_sdl2.bc.js"
@@ -24,6 +26,7 @@
         "esy-installer sdl2-example.install"
       ],
       "dependencies": {
+        "@opam/lwt_ppx": "^2",
         "@opam/js_of_ocaml": "*",
         "@opam/js_of_ocaml-compiler": "*",
         "@opam/js_of_ocaml-lwt": "*",
