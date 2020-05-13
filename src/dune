@@ -1,7 +1,6 @@
 (library
     (name sdl2)
     (public_name sdl2)
-    (libraries threads)
     (js_of_ocaml (javascript_files sdl2_stubs.js))
     (library_flags (:include flags.sexp))
     (c_library_flags (:include c_library_flags.sexp))
