@@ -2,6 +2,7 @@ type os =
   | Windows
   | Mac
   | Linux
+  | Unix
   | Unknown;
 
 let uname = () => {
@@ -18,6 +19,7 @@ let get_os =
     switch (uname()) {
     | "Darwin" => Mac
     | "Linux" => Linux
+    | "FreeBSD" => Unix
     | _ => Unknown
     }
   };
@@ -36,12 +38,13 @@ let c_flags =
   switch (get_os) {
   | Windows => c_flags @ ["-mwindows"]
   | Linux => c_flags @ ["-fPIC"]
+  | Unix  => c_flags @ ["-fPIC", "-I/usr/local/include", "-L/usr/local/lib"]
   | _ => c_flags
   };
 
 let libFolderPath = Sys.getenv("SDL2_LIB_PATH");
 let libFilePath = libFolderPath ++ "/libSDL2.a";
-prerr_endline ("SDL2 Library Folder Path: " ++ libFolderPath);
+prerr_endline("SDL2 Library Folder Path: " ++ libFolderPath);
 
 let ccopt = s => ["-ccopt", s];
 let cclib = s => ["-cclib", s];
@@ -57,6 +60,20 @@ let flags =
     @ cclib("-subsystem windows")
   | Linux =>
     []
+    @ cclib("-lGL")
+    @ cclib("-lGLU")
+    @ ccopt(libFilePath)
+    @ cclib("-lX11")
+    @ cclib("-lXxf86vm")
+    @ cclib("-lXrandr")
+    @ cclib("-lXinerama")
+    @ cclib("-lXcursor")
+    @ cclib("-lpthread")
+    @ cclib("-lXi")
+  | Unix =>
+    []
+    @ ccopt("-I/usr/local/include")
+    @ ccopt("-L/usr/local/lib")
     @ cclib("-lGL")
     @ cclib("-lGLU")
     @ ccopt(libFilePath)
@@ -84,14 +101,16 @@ let flags =
     @ ccopt("-liconv")
   };
 
-let c_library_flags = switch (get_os) {
+let c_library_flags =
+  switch (get_os) {
   | Windows => ["-L" ++ libFolderPath, "-lSDL2"]
-  | _ => [libFilePath];
-}
+  | _ => [libFilePath]
+  };
 
 let cxx_flags =
   switch (get_os) {
   | Linux => c_flags @ ["-std=c++11"]
+  | Unix  => c_flags @ ["-std=c++11"]
   | Windows =>
     c_flags @ ["-fno-exceptions", "-fno-rtti", "-lstdc++", "-mwindows"]
   | Mac => c_flags @ ["-x", "objective-c++"]

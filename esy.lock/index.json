@@ -1,5 +1,5 @@
 {
-  "checksum": "9818b706f879b10ac13d8812c897e013",
+  "checksum": "d4df471c79128317ce42dbf3a46020fd",
   "root": "reason-sdl2@link-dev:./package.json",
   "node": {
     "refmterr@3.3.2@d41d8cd9": {
@@ -33,7 +33,8 @@
       },
       "overrides": [],
       "dependencies": [
-        "refmterr@3.3.2@d41d8cd9", "esy-sdl2@2.0.10008@d41d8cd9",
+        "refmterr@3.3.2@d41d8cd9",
+        "esy-sdl2@github:syaiful6/esy-sdl2#c1c7dc7d37006081735dc6f2b0f32fbd251f341c@d41d8cd9",
         "@opam/dune-configurator@opam:2.5.1@aeb9d8d5",
         "@opam/dune@opam:2.5.0@aef1678b", "@esy-ocaml/reason@3.6.0@d41d8cd9"
       ],
@@ -56,14 +57,16 @@
       "dependencies": [],
       "devDependencies": []
     },
-    "esy-sdl2@2.0.10008@d41d8cd9": {
-      "id": "esy-sdl2@2.0.10008@d41d8cd9",
+    "esy-sdl2@github:syaiful6/esy-sdl2#c1c7dc7d37006081735dc6f2b0f32fbd251f341c@d41d8cd9": {
+      "id":
+        "esy-sdl2@github:syaiful6/esy-sdl2#c1c7dc7d37006081735dc6f2b0f32fbd251f341c@d41d8cd9",
       "name": "esy-sdl2",
-      "version": "2.0.10008",
+      "version":
+        "github:syaiful6/esy-sdl2#c1c7dc7d37006081735dc6f2b0f32fbd251f341c",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://registry.npmjs.org/esy-sdl2/-/esy-sdl2-2.0.10008.tgz#sha1:e0cfc18598f54ad8ee461edae3e71483c2f0e09f"
+          "github:syaiful6/esy-sdl2#c1c7dc7d37006081735dc6f2b0f32fbd251f341c"
         ]
       },
       "overrides": [],

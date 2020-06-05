@@ -31,5 +31,8 @@
   "devDependencies": {
     "ocaml": ">=4.6.0 <4.9.0",
     "@opam/ocaml-lsp-server": "github:ocaml/ocaml-lsp:ocaml-lsp-server.opam#04733ed"
+  },
+  "resolutions": {
+    "esy-sdl2": "syaiful6/esy-sdl2#c1c7dc7d37006081735dc6f2b0f32fbd251f341c"
   }
 }
